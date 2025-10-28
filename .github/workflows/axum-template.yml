@@ -13,7 +13,7 @@ on:
 env:
   DOCKER_BUILDKIT: 1
   APP_NAME: axum-template
-  DOCKERFILE_PATH: docker/Dockerfile
+  DOCKERFILE_PATH: app/docker/Dockerfile
 
 jobs:
   build-and-test:
