@@ -1,0 +1,69 @@
+name: Rust Docker Build and Test
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  DOCKER_BUILDKIT: 1
+  APP_NAME: axum-template
+  DOCKERFILE_PATH: docker/Dockerfile
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Set up Docker Buildx (BuildKit)
+        uses: docker/setup-buildx-action@v3
+
+      - name: ⚙️ Build and Cache Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ env.DOCKERFILE_PATH }}
+          load: true
+          tags: ${{ env.APP_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 🚀 Start Services
+        run: |
+          DOCKER_BUILDKIT=1 docker compose up \
+            --build \
+            --detach \
+            --wait
+
+      - name: ✅ Run Integration/Health Checks
+        run: |
+          echo "Running tests against the container..."
+          for i in 1 2 3 4 5; do
+            if curl -f http://localhost:7777/healthy; then
+              echo "Application is up and healthy!"
+              exit 0
+            fi
+            echo "Waiting for application... attempt $i"
+            sleep 5
+          done
+
+          echo "Health check failed after multiple retries!"
+          docker compose logs app
+          exit 1
+
+      - name: ✅ Run Integration/Health Checks
+        run: |
+          echo "Running tests against the container..."
+          curl -f http://localhost:7777/healthy || (echo "Health check failed!" && exit 1)
+
+      - name: 🛑 Stop Services
+        if: always()
+        run: docker compose down

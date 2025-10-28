@@ -1,0 +1,24 @@
+[package]
+name = "migration"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "migration"
+path = "src/lib.rs"
+
+[dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+dotenvy = { workspace=true }
+infra = { path = "../infra" }
+anyhow = { workspace=true }
+clap = { workspace = true, features = ["derive", "env"] }
+tracing = { workspace=true }
+
+[dependencies.sea-orm-migration]
+version = "~2.0.0-rc" # sea-orm-migration version
+features = [
+  # Enable following runtime and db backend features if you want to run migration via CLI
+  "runtime-tokio",
+  "sqlx-postgres",
+]

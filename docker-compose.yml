@@ -1,0 +1,42 @@
+services:
+  database:
+    image: postgres:17.6-alpine
+    container_name: axum_template_database
+    environment:
+      POSTGRES_DB: axum_template_db
+      POSTGRES_USER: axum_template_user
+      POSTGRES_PASSWORD: Admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U axum_template_user -d axum_template_db"]
+      interval: 5s # 每 5 秒检查一次
+      timeout: 5s # 检查超时时间 5 秒
+      retries: 5 # 失败 5 次后标记为 unhealthy
+      start_period: 10s # 容器启动后等待 10 秒才开始检查
+
+  app:
+    build:
+      context: .
+      dockerfile: ./app/docker/Dockerfile
+    container_name: axum_template_database_app
+    restart: always
+    env_file: ./.env.docker
+    ports:
+      - "7777:7777"
+    depends_on:
+      database:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    name: axum_template_database
+
+networks:
+  # 定义一个自定义网络，用于容器间通信
+  ageis_network:
+    driver: bridge

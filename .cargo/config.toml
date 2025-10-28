@@ -1,0 +1,2 @@
+[alias]
+start = "run --package app -- start"
