@@ -66,4 +66,4 @@ docker-compose up
 - `infra`: The infrastructure config and struct
 - `migration`: The database migration
   - `cmd`: The command line interface for migrations
-  - `migrations\*`: The database migrations file
+  - `migrations/*`: The database migrations file
